@@ -46,7 +46,7 @@ with gr.Blocks(css=".gr-button {background-color: #0077B6 !important; color: whi
         switch_to_login = gr.Button("로그인으로")
 
     with gr.Column(visible=False) as main_panel:
-        chatbot_msg, chatbot_panel = get_chatbot_ui()  # ✅ 이게 핵심
+        chatbot_msg = get_chatbot_ui()  # ✅ 이게 핵심
 
     login_btn.click(fn=login, inputs=[username, password],
                     outputs=[login_msg, login_panel, main_panel])
