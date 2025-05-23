@@ -3,13 +3,16 @@ from ui import get_chatbot_ui  # ✅ ui.py 함수 가져옴
 
 users = {}
 
+# 로그인
 def login(username, password):
     if username in users and users[username] == password:
         # 로그인 성공: UI 전환
         return "✅ 로그인 성공! 챗봇 화면으로 이동합니다.", gr.update(visible=False), gr.update(visible=True)
+        
     else:
         return "❌ 로그인 실패", gr.update(visible=True), gr.update(visible=False)
 
+# 회원 가입
 def signup(username, password, confirm):
     if username in users:
         return "❌ 이미 존재하는 아이디입니다."
@@ -46,7 +49,7 @@ with gr.Blocks(css=".gr-button {background-color: #0077B6 !important; color: whi
         switch_to_login = gr.Button("로그인으로")
 
     with gr.Column(visible=False) as main_panel:
-        chatbot_msg = get_chatbot_ui()  # ✅ 이게 핵심
+        get_chatbot_ui()  # ✅ 이게 핵심
 
     login_btn.click(fn=login, inputs=[username, password],
                     outputs=[login_msg, login_panel, main_panel])
