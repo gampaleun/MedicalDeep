@@ -1,5 +1,5 @@
 import gradio as gr
-from ui import get_chatbot_ui  # ✅ ui.py 함수 가져옴
+from chat import get_chatbot_ui
 
 users = {}
 
@@ -30,8 +30,40 @@ def show_signup():
 def show_login():
     return gr.update(visible=True), gr.update(visible=False)
 
-with gr.Blocks(css=".gr-button {background-color: #0077B6 !important; color: white !important;}") as app:
-    gr.Markdown("<h1 style='color:#0077B6;'>MedicalDeep 인증</h1>")
+with gr.Blocks(css="""
+#sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 220px;
+  background-color: #f0f0f0;
+  padding: 15px;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  z-index: 999;
+}
+#sidebar.visible {
+  transform: translateX(0%);
+}
+#toggle-btn {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 1000;
+  background: white;
+  border: 1px solid #ccc;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+""") as app:
+    gr.HTML("""
+        <div style='text-align:center; background-color: #e6e7eb; padding: 15px; border-radius: 10px;'>
+            <img src='https://i.ibb.co/7x6sVzXN/logo2.png' style='width: 200px;' />
+        </div>
+        """)
 
     with gr.Column(visible=True) as login_panel:
         username = gr.Textbox(label="아이디")
