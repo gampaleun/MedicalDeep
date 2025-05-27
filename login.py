@@ -1,8 +1,9 @@
 import gradio as gr
 from chat import get_chatbot_ui
 
-users = {}
-
+users = {
+    "123": "1234",      # ✅ 아이디: admin / 비밀번호: 1234
+}
 # 로그인
 def login(username, password):
     if username in users and users[username] == password:
