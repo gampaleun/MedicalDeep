@@ -60,3 +60,7 @@ def build_ui():
         switch_to_login.click(fn=show_login, outputs=[login_panel, signup_panel])
 
     return app
+
+if __name__ == "__main__":
+    app = build_ui()
+    app.launch(share=True)  # ✅ 외부 접근용 링크 생성

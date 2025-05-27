@@ -1,26 +1,23 @@
 import gradio as gr
-
+from hf_call import call_huggingface  # ✅ 새로운 함수 사용
 # 환자 세션 저장소
 chat_sessions = {
     "원지니 천재": [],
     "박수민 똥강아지": []
 }
 
-def simple_reply(msg):
-    msg = msg.lower()
-    if "안녕" in msg:
-        return "안녕하세요! 무엇을 도와드릴까요?"
-    elif "날씨" in msg:
-        return "오늘 날씨는 맑고 따뜻해요."
-    elif "이름" in msg:
-        return "저는 MedicalDeep 챗봇이에요!"
-    else:
-        return "뭐라는겨? 안녕 / 날씨 / 이름 중 선택하세요 저는 바보똥개라서요"
-
 def chatbot_response(msg, selected, sessions):
-    reply = simple_reply(msg)
+    if selected not in sessions:
+        sessions[selected] = []
+
+    # 간단한 프롬프트 구성 (이전 대화 활용 X, 단순 버전)
+    prompt = f"사용자: {msg}\nAI:"
+    reply = call_huggingface(prompt)
+
     sessions[selected].append(("🙋‍♂️: " + msg, "🤖: " + reply))
     return "", sessions[selected], sessions
+
+
 
 def switch_patient(name, sessions):
     return sessions[name], sessions
