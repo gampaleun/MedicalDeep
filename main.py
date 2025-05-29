@@ -52,8 +52,10 @@ def build_ui():
         with gr.Column(visible=False) as main_panel:
             get_chatbot_ui()
 
-        login_btn.click(fn=login, inputs=[username, password],
-                        outputs=[login_msg, login_panel, main_panel])
+        login_btn.click(fn=login,
+                        inputs=[username, password],
+                        outputs=[login_msg, login_panel, signup_panel, main_panel])  # ✅ 여기 수정)
+
         signup_btn.click(fn=signup, inputs=[new_username, new_password, new_confirm],
                          outputs=[signup_msg])
         switch_to_signup.click(fn=show_signup, outputs=[login_panel, signup_panel])
