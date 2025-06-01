@@ -1,85 +1,64 @@
-from dotenv import load_dotenv
-import os
-import mysql.connector
+# login.py
 import gradio as gr
 
-load_dotenv("hf_api_token.env")
+# 사용자 저장소 (간단한 예시용 딕셔너리)
+users = {"admin": "1234"}
+
+# ✅ 로그인 로직
+def login(username, password):
+    if username in users and users[username] == password:
+        return "✅ 로그인 성공! 챗봇 화면으로 이동합니다.", gr.update(visible=False), gr.update(visible=True)
+    else:
+        return "❌ 로그인 실패", gr.update(visible=True), gr.update(visible=False)
+
+# ✅ 회원가입 로직
+def signup(username, password, confirm):
+    if username in users:
+        return "❌ 이미 존재하는 아이디입니다."
+    elif password != confirm:
+        return "❌ 비밀번호가 일치하지 않습니다."
+    elif len(password) < 4:
+        return "❌ 비밀번호는 최소 4자 이상이어야 합니다."
+    else:
+        users[username] = password
+        return "✅ 회원가입 성공! 로그인 해주세요."
+
+# ✅ 화면 전환 로직
+def show_signup():
+    return gr.update(visible=False), gr.update(visible=True)
 
 def show_login():
     return gr.update(visible=True), gr.update(visible=False)
 
-def show_signup():
-    return gr.update(visible=False), gr.update(visible=True)
+# ✅ 로그인/회원가입 UI 반환
+def get_login_ui():
+    with gr.Column(visible=True) as login_panel:
+        username = gr.Textbox(label="아이디")
+        password = gr.Textbox(label="비밀번호", type="password")
+        login_btn = gr.Button("로그인")
+        login_msg = gr.Textbox(interactive=False)
+        switch_to_signup = gr.Button("회원가입으로")
 
-def get_db_connection():
-    return mysql.connector.connect(
-        host=os.getenv("DB_HOST"),
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
-        database=os.getenv("DB_NAME"),
-        port=int(os.getenv("DB_PORT", 3306))
-    )
+    with gr.Column(visible=False) as signup_panel:
+        new_username = gr.Textbox(label="새 아이디")
+        new_password = gr.Textbox(label="비밀번호", type="password")
+        new_confirm = gr.Textbox(label="비밀번호 확인", type="password")
+        signup_btn = gr.Button("회원가입")
+        signup_msg = gr.Textbox(interactive=False)
+        switch_to_login = gr.Button("로그인으로")
 
-# ✅ 먼저 함수 정의들
-def signup(username, password, confirm):
-    if password != confirm:
-        return gr.update(value="❌ 비밀번호가 일치하지 않습니다.", visible=True)
-    elif len(password) < 4:
-        return gr.update(value="❌ 비밀번호는 최소 4자 이상이어야 합니다.", visible=True)
-
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, password))
-        conn.commit()
-        return gr.update(value="✅ 회원가입 성공! 로그인해주세요.", visible=True)
-    except mysql.connector.IntegrityError:
-        return gr.update(value="❌ 이미 존재하는 아이디입니다.", visible=True)
-    finally:
-        cursor.close()
-        conn.close()
-
-
-
-
-def login(username, password):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT password FROM users WHERE username = %s", (username,))
-    result = cursor.fetchone()
-    cursor.close()
-    conn.close()
-
-    if result and password == result[0]:
-        return (
-            gr.update(value="✅ 로그인 성공!", visible=True),
-            gr.update(visible=False),
-            gr.update(visible=False),
-            gr.update(visible=True)
-        )
-    else:
-        return (
-            gr.update(value="❌ 로그인 실패", visible=True),
-            gr.update(visible=True),
-            gr.update(visible=False),
-            gr.update(visible=False)
-        )
-
-
-
-# ✅ 이제 Gradio UI 구성
-with gr.Blocks() as demo:
-    with gr.Tab("회원가입"):
-        u1 = gr.Textbox(label="아이디")
-        p1 = gr.Textbox(label="비밀번호", type="password")
-        c1 = gr.Textbox(label="비밀번호 확인", type="password")
-        out1 = gr.Textbox(label="결과 메시지")
-        btn1 = gr.Button("회원가입")
-        btn1.click(fn=signup, inputs=[u1, p1, c1], outputs=out1)
-
-    with gr.Tab("로그인"):
-        u2 = gr.Textbox(label="아이디")
-        p2 = gr.Textbox(label="비밀번호", type="password")
-        out2 = gr.Textbox(label="결과 메시지")
-        btn2 = gr.Button("로그인")
-        btn2.click(fn=login, inputs=[u2, p2], outputs=out2)
+    return {
+        "login_panel": login_panel,
+        "signup_panel": signup_panel,
+        "username": username,
+        "password": password,
+        "login_btn": login_btn,
+        "login_msg": login_msg,
+        "switch_to_signup": switch_to_signup,
+        "new_username": new_username,
+        "new_password": new_password,
+        "new_confirm": new_confirm,
+        "signup_btn": signup_btn,
+        "signup_msg": signup_msg,
+        "switch_to_login": switch_to_login,
+    }
