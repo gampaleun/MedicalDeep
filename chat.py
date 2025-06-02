@@ -77,11 +77,32 @@ def confirm_add_patient(name, gender, birth, symptom, sessions):
     sessions[name] = {"birth": birth, "gender": gender, "symptom": symptom, "chat": []}
     return name, sessions
 
+# ✅ 환자 정보 수정 (이름 포함)
+def edit_patient_info(new_name, birth, gender, symptom, selected, sessions):
+    if selected in sessions:
+        sessions[new_name] = sessions.pop(selected)
+        sessions[new_name]["birth"] = birth
+        sessions[new_name]["gender"] = gender
+        sessions[new_name]["symptom"] = symptom
+    return new_name, sessions
+
+# ✅ 환자 삭제
+def delete_patient(selected, sessions):
+    if selected in sessions:
+        del sessions[selected]
+    return "", [], sessions
+
+# ✅ 환자 정보 로드
+def load_patient_info(selected, sessions):
+    if selected in sessions:
+        data = sessions[selected]
+        return selected, data.get("birth", ""), data.get("gender", None), data.get("symptom", "")
+    return "", "", None, ""
+
 # ✅ 상단 텍스트 갱신
 def get_patient_header(name):
     return f"### {name}"
 
-# ✅ Gradio UI 구성
 def get_chatbot_ui():
     sessions = gr.State(chat_sessions)
     selector = gr.State("")
@@ -125,12 +146,35 @@ def get_chatbot_ui():
     </script>
     """)
 
-    with gr.Column():
-        selected_text = gr.Markdown("")
-        chatbot = gr.Chatbot(label=None, height=400)
-        msg = gr.Textbox(placeholder="메시지를 입력하세요...", label="입력")
-        clear = gr.Button("대화 초기화")
+    has_patients = bool(chat_sessions)
+    chatbot_container = gr.Column(visible=has_patients)
+    empty_notice = gr.HTML(
+        """
+        <div style='height: 400px; display: flex; justify-content: center; align-items: center; text-align: center; font-size: 1.2rem; color: gray;'>
+            <div>
+                <p>🩺 환자를 먼저 추가하세요.</p>
+            </div>
+        </div>
+        """,
+        visible=not has_patients
+    )
 
+    # ✅ 채팅 및 수정 UI Tabs
+    with chatbot_container:
+        with gr.Tabs():
+            with gr.Tab("대화"):
+                selected_text = gr.Markdown("")
+                chatbot = gr.Chatbot(label=None, height=400)
+                msg = gr.Textbox(placeholder="메시지를 입력하세요...", label="입력")
+
+            with gr.Tab("환자 정보 수정"):
+                edit_gender = gr.Radio(label="성별", choices=["남자", "여자"])
+                edit_birth = gr.Textbox(label="생년월일")
+                edit_symptom = gr.Textbox(label="증상")
+                save_btn = gr.Button("저장")
+                save_result = gr.Textbox(interactive=False)
+
+    # 사이드바
     with gr.Column(elem_id="sidebar"):
         gr.Markdown("###환자 목록")
         patient_buttons = [gr.Button(visible=False, elem_id=f"patient-btn-{i}") for i in range(10)]
@@ -142,7 +186,6 @@ def get_chatbot_ui():
             new_symptom = gr.Textbox(label="증상")
             confirm_btn = gr.Button("환자추가")
 
-    # ✅ 버튼 클릭 동작 정의 (초기만 연결)
     def setup_patient_button(btn):
         btn.click(
             fn=lambda name: name,
@@ -158,11 +201,9 @@ def get_chatbot_ui():
             outputs=[selected_text]
         )
 
-    # ✅ 모든 버튼에 대해 초기 이벤트 연결
     for btn in patient_buttons:
         setup_patient_button(btn)
 
-    # ✅ 버튼 텍스트/표시만 업데이트 (이벤트 연결 X)
     def update_patient_buttons(sessions):
         names = list(sessions.keys())
         updates = []
@@ -173,11 +214,28 @@ def get_chatbot_ui():
                 updates.append(gr.update(visible=False))
         return updates
 
-    # ✅ 채팅/초기화 이벤트 연결
-    msg.submit(fn=chatbot_response, inputs=[msg, selector, sessions], outputs=[msg, chatbot, sessions])
-    clear.click(fn=lambda: ("", []), outputs=[msg, chatbot])
+    def toggle_chat_ui_on_add(selector_val, sessions_val):
+        return gr.update(visible=True), gr.update(visible=False)
 
-    # ✅ 환자 추가 → 버튼 목록 업데이트 → 선택 텍스트 갱신
+    def load_patient_info(patient_id, sessions):
+        info = sessions.get(patient_id, {})
+        return (
+            info.get("gender", ""),
+            info.get("birth", ""),
+            info.get("symptom", "")
+        )
+
+    def save_patient_info(patient_id, gender, birth, symptom, sessions):
+        if patient_id in sessions:
+            sessions[patient_id]["gender"] = gender
+            sessions[patient_id]["birth"] = birth
+            sessions[patient_id]["symptom"] = symptom
+            return "✅ 저장되었습니다.", sessions
+        else:
+            return "❌ 환자 정보 없음", sessions
+
+    msg.submit(fn=chatbot_response, inputs=[msg, selector, sessions], outputs=[msg, chatbot, sessions])
+
     confirm_btn.click(
         fn=confirm_add_patient,
         inputs=[new_name, new_gender, new_birth, new_symptom, sessions],
@@ -191,16 +249,31 @@ def get_chatbot_ui():
         inputs=[selector],
         outputs=[selected_text]
     ).then(
-        fn=lambda: ("", None, "", ""),  # 입력 초기화
+        fn=toggle_chat_ui_on_add,
+        inputs=[selector, sessions],
+        outputs=[chatbot_container, empty_notice]
+    ).then(
+        fn=lambda: ("", None, "", ""),
         outputs=[new_name, new_gender, new_birth, new_symptom]
     )
 
+    selector.change(
+        fn=load_patient_info,
+        inputs=[selector, sessions],
+        outputs=[edit_gender, edit_birth, edit_symptom]
+    )
 
+    save_btn.click(
+        fn=save_patient_info,
+        inputs=[selector, edit_gender, edit_birth, edit_symptom, sessions],
+        outputs=[save_result, sessions]
+    )
 
     return {
         "sessions": sessions,
         "selector": selector,
         "chatbot": chatbot,
         "msg": msg,
-        "clear": clear
+        "chatbot_container": chatbot_container,
+        "empty_notice": empty_notice
     }
