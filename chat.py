@@ -142,10 +142,11 @@ def get_chatbot_ui():
             new_symptom = gr.Textbox(label="증상")
             confirm_btn = gr.Button("환자추가")
 
-    # 버튼 동작 정의
-    def setup_patient_button(btn, name):
+    # ✅ 버튼 클릭 동작 정의 (초기만 연결)
+    def setup_patient_button(btn):
         btn.click(
-            fn=lambda name=name: name,
+            fn=lambda name: name,
+            inputs=[btn],
             outputs=selector
         ).then(
             fn=switch_patient,
@@ -157,15 +158,11 @@ def get_chatbot_ui():
             outputs=[selected_text]
         )
 
-    # 초기 버튼 세팅
-    for i, btn in enumerate(patient_buttons):
-        if i < len(chat_sessions):
-            name = list(chat_sessions.keys())[i]
-            btn.visible = True
-            btn.value = name
-            setup_patient_button(btn, name)
+    # ✅ 모든 버튼에 대해 초기 이벤트 연결
+    for btn in patient_buttons:
+        setup_patient_button(btn)
 
-    # 새 환자 추가 후 버튼 업데이트
+    # ✅ 버튼 텍스트/표시만 업데이트 (이벤트 연결 X)
     def update_patient_buttons(sessions):
         names = list(sessions.keys())
         updates = []
@@ -176,8 +173,11 @@ def get_chatbot_ui():
                 updates.append(gr.update(visible=False))
         return updates
 
+    # ✅ 채팅/초기화 이벤트 연결
     msg.submit(fn=chatbot_response, inputs=[msg, selector, sessions], outputs=[msg, chatbot, sessions])
     clear.click(fn=lambda: ("", []), outputs=[msg, chatbot])
+
+    # ✅ 환자 추가 → 버튼 목록 업데이트 → 선택 텍스트 갱신
     confirm_btn.click(
         fn=confirm_add_patient,
         inputs=[new_name, new_gender, new_birth, new_symptom, sessions],
@@ -190,7 +190,12 @@ def get_chatbot_ui():
         fn=get_patient_header,
         inputs=[selector],
         outputs=[selected_text]
+    ).then(
+        fn=lambda: ("", None, "", ""),  # 입력 초기화
+        outputs=[new_name, new_gender, new_birth, new_symptom]
     )
+
+
 
     return {
         "sessions": sessions,
