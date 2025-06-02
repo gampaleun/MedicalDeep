@@ -52,7 +52,7 @@ def build_ui():
             new_confirm = gr.Textbox(label="비밀번호 확인", type="password")
             signup_btn = gr.Button("회원가입")
             signup_msg = gr.Textbox(label="결과", interactive=False)
-            switch_to_login = gr.Button("로그인으로로")
+            switch_to_login = gr.Button("로그인으로")
 
         with gr.Column(visible=False) as main_panel:
             ui = get_chatbot_ui()
