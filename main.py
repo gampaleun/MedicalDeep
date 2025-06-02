@@ -1,6 +1,6 @@
 import gradio as gr
-from login import login, signup, show_login, show_signup
-from chat import chatbot_response, switch_patient, get_chatbot_ui
+#from login import login, signup, show_login, show_signup
+#from chat import chatbot_response, switch_patient, get_chatbot_ui
 
 def build_ui():
     with gr.Blocks(css="""
@@ -62,9 +62,7 @@ def build_ui():
         switch_to_signup.click(fn=show_signup, outputs=[login_panel, signup_panel])
         switch_to_login.click(fn=show_login, outputs=[login_panel, signup_panel])
 
-        ui["msg"].submit(fn=chatbot_response, inputs=[ui["msg"], ui["selector"], ui["sessions"]], outputs=[ui["msg"], ui["chatbot"], ui["sessions"]])
         ui["selector"].change(fn=switch_patient, inputs=[ui["selector"], ui["sessions"]], outputs=[ui["chatbot"], ui["sessions"]])
-        ui["clear"].click(lambda: ("", []), outputs=[ui["msg"], ui["chatbot"]])
 
     return app
   
