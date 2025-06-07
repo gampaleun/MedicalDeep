@@ -2,7 +2,7 @@
 Medical Deep은 환자 정보를 기반으로 맞춤형 상담이 가능한 의료 특화 챗봇 플랫폼입니다.
 
 ## 모델
-deepseek_r1_medicalQA_chatbot_최종.ipynb: 딥시크를 준비한 의료 질문-추론-응답 데이터 4000개로 파인튜닝 후 허깅페이스에 업로드.
+deepseek_r1_medicalQA_chatbot_최종.ipynb: 딥시크를 준비한 의료 질문-추론-응답 데이터 4000개로 파인튜닝 후 허깅페이스에 업로드. 코사인 유사도와 BERT Score F1으로 검증 완료 (0.7)
 
 combined_translated_0000_3999.json: 한글로 번역한 의료 질문-추론-응답 데이터.(4000개) 위 모델의 학습용 데이터.
 
