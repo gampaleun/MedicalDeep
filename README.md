@@ -6,6 +6,8 @@ deepseek_r1_medicalQA_chatbot_최종.ipynb: 딥시크를 준비한 의료 질문
 
 combined_translated_0000_3999.json: 한글로 번역한 의료 질문-추론-응답 데이터.(4000개) 위 모델의 학습용 데이터.
 
+validation_translated_4001_4100.json, validation_translated_4101_4200.json : 모델 성능 검증용 데이터
+
 ## 웹 애플리케이션
 login.py: 사용자 로그인 기능, MySQL 서버 자동 실행
 
