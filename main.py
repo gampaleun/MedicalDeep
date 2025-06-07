@@ -1,6 +1,11 @@
 import gradio as gr
 from login import login, signup, show_login, show_signup
-from chat import get_chatbot_ui
+from chat import get_chatbot_ui, chatbot_response
+
+def switch_patient(name, sessions):
+    if name not in sessions:
+        return [], sessions
+    return sessions[name]["chat"], sessions
 
 def build_ui():
     with gr.Blocks(css="""
@@ -32,14 +37,18 @@ def build_ui():
       cursor: pointer;
     }
     """) as app:
-        gr.Markdown("<h1 style='color:#0077B6;'>MedicalDeep 인증</h1>")
+        gr.HTML("""
+        <div style="display: flex; justify-content: center; align-items: center; padding: 20px;">
+            <img src="https://i.ibb.co/7x6sVzXN/logo2.png" style="width: 200px;" />
+        </div>
+        """)
 
         with gr.Column(visible=True) as login_panel:
             username = gr.Textbox(label="아이디")
             password = gr.Textbox(label="비밀번호", type="password")
             login_btn = gr.Button("로그인")
-            login_msg = gr.Textbox(label="결과", interactive=False)
-            switch_to_signup = gr.Button("회원가입으로")
+            login_msg = gr.Textbox(interactive=False)
+            switch_to_signup = gr.Button("회원가입")
 
         with gr.Column(visible=False) as signup_panel:
             new_username = gr.Textbox(label="새 아이디")
@@ -50,17 +59,26 @@ def build_ui():
             switch_to_login = gr.Button("로그인으로")
 
         with gr.Column(visible=False) as main_panel:
-            get_chatbot_ui()
+            ui = get_chatbot_ui()
 
-        login_btn.click(fn=login, inputs=[username, password],
-                        outputs=[login_msg, login_panel, main_panel])
-        signup_btn.click(fn=signup, inputs=[new_username, new_password, new_confirm],
-                         outputs=[signup_msg])
+        login_btn.click(fn=login, inputs=[username, password], outputs=[login_msg, login_panel, main_panel])
+        signup_btn.click(fn=signup, inputs=[new_username, new_password, new_confirm], outputs=[signup_msg])
         switch_to_signup.click(fn=show_signup, outputs=[login_panel, signup_panel])
         switch_to_login.click(fn=show_login, outputs=[login_panel, signup_panel])
+
+        ui["selector"].change(
+            fn=switch_patient,
+            inputs=[ui["selector"], ui["sessions"]],
+            outputs=[ui["chatbot"], ui["sessions"]]
+        )
+
+        ui["msg"].submit(
+            fn=chatbot_response,
+            inputs=[ui["msg"], ui["selector"], ui["sessions"]],
+            outputs=[ui["msg"], ui["chatbot"], ui["sessions"]],
+        )
 
     return app
 
 if __name__ == "__main__":
-    app = build_ui()
-    app.launch(share=True)  # ✅ 외부 접근용 링크 생성
+    build_ui().launch(server_name="0.0.0.0", server_port=7860, share=True)
