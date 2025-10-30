@@ -3,7 +3,9 @@ Medical Deep은 환자 정보를 기반으로 맞춤형 상담이 가능한 의�
 
 ## 모델
 **deepseek_r1_medicalQA_chatbot(모델학습)의_디벨롭.ipynb**: 딥시크를 준비한 의료 질문-추론-응답 데이터 18,966개로 파인튜닝 후 허깅페이스에 업로드. 코사인 유사도와 BERT Score F1으로 검증
+
 **파인튜닝 딥시크 모델**: https://huggingface.co/nanyaas/deepseek-r1-medicalQA-Qwen_7B_dev
+
 **GGUF**: https://huggingface.co/nanyaas/medicalQA-DeepSeekR1-Qwen7B-GGUF_2
 _________
 **deepseek_r1_medicalQA_chatbot_최종.ipynb**: 딥시크를 준비한 의료 질문-추론-응답 데이터 4000개로 파인튜닝 후 허깅페이스에 업로드. 코사인 유사도와 BERT Score F1으로 검증 완료 (0.7)
